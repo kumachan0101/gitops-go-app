@@ -1,0 +1,32 @@
+name: Github Action CI
+
+# mainブランチへのプッシュをトリガーにする
+on:
+  push:
+    branches: [ main ]
+
+jobs:
+  build:
+    name: GitOps Workflow
+    runs-on: ubuntu-latest
+    steps:
+      - name: Checkout code
+        uses: actions/checkout@v2
+      #Buildkitによるイメージビルド
+      - name: Build an image from Dockerfile
+        run: |
+          DOCKER_BUILDKIT=1 docker image build . -f app/Dockerfile --tag ${{ secrets.DOCKERUSER }}/gitops-go-app:latest
+      #Trivyによるイメージスキャン  
+      - name: Run Trivy
+        uses: aquasecurity/trivy-action@master
+        with:
+          image-ref: '${{ secrets.DOCKERUSER }}/gitops-go-app:latest'
+          format: 'table'
+          exit-code: '1'
+          ignore-unfixed: true
+          severity: 'CRITICAL,HIGH'
+      #Docker Hubにイメージプッシュ
+      - name: Push Image
+        run: |
+          docker login docker.io --username ${{ secrets.DOCKERUSER }} --password ${{ secrets.DOCKERPASSWORD }}
+          docker image push ${{ secrets.DOCKERUSER }}/gitops-go-app:latest
