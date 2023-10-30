@@ -1,6 +1,5 @@
 name: Github Action CI
 
-# mainブランチへのプッシュをトリガーにする
 on:
   push:
     branches: [ main ]
@@ -25,8 +24,20 @@ jobs:
           exit-code: '1'
           ignore-unfixed: true
           severity: 'CRITICAL,HIGH'
-      #Docker Hubにイメージプッシュ
+      #DockerHubにイメージプッシュ
       - name: Push Image
         run: |
           docker login docker.io --username ${{ secrets.DOCKERUSER }} --password ${{ secrets.DOCKERPASSWORD }}
           docker image push ${{ secrets.DOCKERUSER }}/gitops-go-app:latest
+      #Kubernetesマニフェストの更新
+      - name: Change Pod Name
+        run: |
+          echo -e "machine github.com\nlogin ${{ secrets.GITHUBUSER }}\npassword ${{ secrets.GITHUBTOKEN }}" > ~/.netrc
+          git config --global user.email ${{ secrets.EMAIL }}
+          git config --global user.name ${{ secrets.GITHUBUSER }}
+          git clone https://github.com/${{ secrets.GITHUBUSER }}/config.git
+          cd config/manifest
+          yq e '.metadata.name = "gitops-deployment${{ github.run_number }}"' -i app.yaml
+          git add app.yaml
+          git commit -m ${{ github.run_number }} -a
+          git push origin main
