@@ -35,7 +35,7 @@ jobs:
           echo -e "machine github.com\nlogin ${{ secrets.GITHUBUSER }}\npassword ${{ secrets.GITHUBTOKEN }}" > ~/.netrc
           git config --global user.email ${{ secrets.EMAIL }}
           git config --global user.name ${{ secrets.GITHUBUSER }}
-          git clone https://github.com/${{ secrets.GITHUBUSER }}/config.git
+          git clone https://github.com/${{ secrets.GITHUBUSER }}/argo-test.git
           cd config/manifest
           yq e '.metadata.name = "gitops-deployment${{ github.run_number }}"' -i app.yaml
           git add app.yaml
