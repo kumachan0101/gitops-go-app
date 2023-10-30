@@ -6,7 +6,7 @@ import (
 )
 
 func handler(w http.ResponseWriter, r *http.Request){
-  fmt.Fprintf(w,"Pan GitOps!!")
+  fmt.Fprintf(w,"Pin GitOps!!")
 }
 
 func main(){
